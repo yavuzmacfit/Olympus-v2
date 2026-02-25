@@ -4,7 +4,8 @@ import {
   Home, Users, Bookmark, Target, Megaphone, BarChart2, 
   LayoutGrid, ChevronDown, Filter, ArrowUpDown, Download, 
   MoreHorizontal, X, ExternalLink, RefreshCw, Phone, Copy,
-  Mail, Calendar, StickyNote, CheckSquare, ChevronRight, ChevronLeft
+  Mail, Calendar, StickyNote, CheckSquare, ChevronRight, ChevronLeft,
+  CreditCard, Percent, Ticket, List, Landmark, UserPlus, Snowflake
 } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'motion/react';
 import { MOCK_CONTACTS, Contact } from './types';
@@ -13,13 +14,27 @@ export default function App() {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(MOCK_CONTACTS[0]);
   const [activeTab, setActiveTab] = useState('All contacts');
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
-  const [currentView, setCurrentView] = useState<'home' | 'contacts' | 'memberships' | 'campaigns'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'contacts' | 'memberships' | 'memberships_update' | 'memberships_debt' | 'campaigns' | 'campaigns_discount' | 'campaigns_promo_create' | 'campaigns_promo_list' | 'campaigns_bank' | 'campaigns_referral' | 'campaigns_freeze'>('home');
   const [openTabs, setOpenTabs] = useState<string[]>(['home']);
+  const [moduleStates, setModuleStates] = useState<Record<string, 'home' | 'contacts' | 'memberships' | 'memberships_update' | 'memberships_debt' | 'campaigns' | 'campaigns_discount' | 'campaigns_promo_create' | 'campaigns_promo_list' | 'campaigns_bank' | 'campaigns_referral' | 'campaigns_freeze'>>({
+    home: 'home',
+    contacts: 'contacts',
+    memberships: 'memberships',
+    campaigns: 'campaigns'
+  });
 
-  const handleNavigate = (view: 'home' | 'contacts' | 'memberships' | 'campaigns') => {
+  const getModuleId = (view: string): string => {
+    if (view.startsWith('memberships')) return 'memberships';
+    if (view.startsWith('campaigns')) return 'campaigns';
+    return view;
+  };
+
+  const handleNavigate = (view: 'home' | 'contacts' | 'memberships' | 'memberships_update' | 'memberships_debt' | 'campaigns' | 'campaigns_discount' | 'campaigns_promo_create' | 'campaigns_promo_list' | 'campaigns_bank' | 'campaigns_referral' | 'campaigns_freeze') => {
+    const moduleId = getModuleId(view);
     setCurrentView(view);
-    if (!openTabs.includes(view)) {
-      setOpenTabs([...openTabs, view]);
+    setModuleStates(prev => ({ ...prev, [moduleId]: view }));
+    if (!openTabs.includes(moduleId)) {
+      setOpenTabs(prev => [...prev, moduleId]);
     }
   };
 
@@ -30,7 +45,7 @@ export default function App() {
     const newTabs = openTabs.filter(t => t !== tab);
     setOpenTabs(newTabs);
     
-    if (currentView === tab) {
+    if (getModuleId(currentView) === tab) {
       setCurrentView('home');
     }
   };
@@ -49,15 +64,20 @@ export default function App() {
           {/* Fixed Home Tab */}
           {openTabs.includes('home') && (
             <div 
-              onClick={() => setCurrentView('home')}
+              onClick={() => setCurrentView(moduleStates['home'] || 'home')}
               className={`group relative h-9 px-4 flex items-center gap-2 cursor-pointer transition-all min-w-[120px] max-w-[200px] flex-shrink-0 ${
-                currentView === 'home' 
+                getModuleId(currentView) === 'home' 
                   ? 'bg-slate-200 text-slate-800 rounded-t-lg z-10 before:content-[""] before:absolute before:bottom-0 before:-left-2 before:w-2 before:h-2 before:bg-[radial-gradient(circle_at_0_0,transparent_8px,#e2e8f0_8px)] after:content-[""] after:absolute after:bottom-0 after:-right-2 after:w-2 after:h-2 after:bg-[radial-gradient(circle_at_100%_0,transparent_8px,#e2e8f0_8px)]' 
                   : 'text-white/60 hover:bg-white/5 rounded-t-lg'
               }`}
             >
               <Home className="w-4 h-4" />
               <span className="text-xs font-medium truncate">Anasayfa</span>
+              
+              {/* Separator */}
+              {getModuleId(currentView) !== 'home' && openTabs[1] !== getModuleId(currentView) && openTabs.length > 1 && (
+                <div className="absolute right-0 top-2 bottom-2 w-[1px] bg-white/20" />
+              )}
             </div>
           )}
 
@@ -68,30 +88,43 @@ export default function App() {
             onReorder={(newOrder) => setOpenTabs(['home', ...newOrder])}
             className="flex items-end h-full"
           >
-            {openTabs.filter(t => t !== 'home').map((tab) => (
-              <Reorder.Item
-                key={tab}
-                value={tab}
-                onClick={() => setCurrentView(tab as any)}
-                transition={{ type: "spring", stiffness: 600, damping: 30 }}
-                className={`group relative h-9 px-4 flex items-center gap-2 cursor-pointer min-w-[120px] max-w-[200px] ${
-                  currentView === tab 
-                    ? 'bg-slate-200 text-slate-800 rounded-t-lg z-10 before:content-[""] before:absolute before:bottom-0 before:-left-2 before:w-2 before:h-2 before:bg-[radial-gradient(circle_at_0_0,transparent_8px,#e2e8f0_8px)] after:content-[""] after:absolute after:bottom-0 after:-right-2 after:w-2 after:h-2 after:bg-[radial-gradient(circle_at_100%_0,transparent_8px,#e2e8f0_8px)]' 
-                    : 'text-white/60 hover:bg-white/5 rounded-t-lg transition-colors'
-                }`}
-              >
-                {tab === 'memberships' ? <Bookmark className="w-4 h-4" /> : tab === 'campaigns' ? <Sparkles className="w-4 h-4" /> : <Users className="w-4 h-4" />}
-                <span className="text-xs font-medium truncate">
-                  {tab === 'memberships' ? 'Üyelik İşlemleri' : tab === 'campaigns' ? 'Kampanya İşlemleri' : 'Aday Üye'}
-                </span>
-                <button 
-                  onClick={(e) => closeTab(e, tab)}
-                  className={`ml-auto p-0.5 rounded-full hover:bg-black/10 transition-opacity ${currentView === tab ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+            {openTabs.filter(t => t !== 'home').map((tab, index, filteredArr) => {
+              const moduleId = tab;
+              const isSelected = getModuleId(currentView) === moduleId;
+              const globalIndex = openTabs.indexOf(tab);
+              const nextTab = openTabs[globalIndex + 1];
+              const isNextSelected = nextTab && getModuleId(currentView) === nextTab;
+              
+              return (
+                <Reorder.Item
+                  key={tab}
+                  value={tab}
+                  onClick={() => setCurrentView(moduleStates[moduleId] || (moduleId as any))}
+                  transition={{ type: "spring", stiffness: 600, damping: 30 }}
+                  className={`group relative h-9 px-4 flex items-center gap-2 cursor-pointer min-w-[120px] max-w-[200px] ${
+                    isSelected 
+                      ? 'bg-slate-200 text-slate-800 rounded-t-lg z-10 before:content-[""] before:absolute before:bottom-0 before:-left-2 before:w-2 before:h-2 before:bg-[radial-gradient(circle_at_0_0,transparent_8px,#e2e8f0_8px)] after:content-[""] after:absolute after:bottom-0 after:-right-2 after:w-2 after:h-2 after:bg-[radial-gradient(circle_at_100%_0,transparent_8px,#e2e8f0_8px)]' 
+                      : 'text-white/60 hover:bg-white/5 rounded-t-lg transition-colors'
+                  }`}
                 >
-                  <X className="w-3 h-3" />
-                </button>
-              </Reorder.Item>
-            ))}
+                  {tab === 'memberships' ? <Bookmark className="w-4 h-4" /> : tab === 'campaigns' ? <Sparkles className="w-4 h-4" /> : <Users className="w-4 h-4" />}
+                  <span className="text-xs font-medium truncate">
+                    {tab === 'memberships' ? 'Üyelik İşlemleri' : tab === 'campaigns' ? 'Kampanya İşlemleri' : 'Aday Üye'}
+                  </span>
+                  <button 
+                    onClick={(e) => closeTab(e, tab)}
+                    className={`ml-auto p-0.5 rounded-full hover:bg-black/10 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'}`}
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+
+                  {/* Separator */}
+                  {!isSelected && !isNextSelected && globalIndex < openTabs.length - 1 && (
+                    <div className="absolute right-0 top-2 bottom-2 w-[1px] bg-white/20" />
+                  )}
+                </Reorder.Item>
+              );
+            })}
           </Reorder.Group>
         </div>
         
@@ -118,29 +151,108 @@ export default function App() {
                 active={currentView === 'home'}
                 onClick={() => handleNavigate('home')}
               />
-              <SidebarIcon 
-                icon={<BarChart2 className="w-5 h-5" />} 
-                label="İstatistikler" 
-                isSidebarExpanded={isSidebarExpanded} 
-              />
-              {currentView !== 'memberships' && currentView !== 'campaigns' && (
-                <SidebarIcon 
-                  icon={<Users className="w-5 h-5" />} 
-                  label="Aday Üye"
-                  active={currentView === 'contacts'} 
-                  isSidebarExpanded={isSidebarExpanded}
-                  onClick={() => handleNavigate('contacts')}
-                  menu={{
-                    title: "ADAY ÜYE",
-                    items: ["Aday Üye Listesi", "Takvim", "QR Kodları", "Farklı Kulübe Gidenler"]
-                  }}
-                />
+              
+              {/* Horizontal Separator */}
+              <div className="w-full px-3 -my-1">
+                <div className="h-[1px] bg-white/10 w-full"></div>
+              </div>
+              
+              {currentView.startsWith('memberships') ? (
+                <>
+                  <SidebarIcon 
+                    icon={<Bookmark className="w-5 h-5" />} 
+                    label="Üyelik İşlemleri" 
+                    isSidebarExpanded={isSidebarExpanded}
+                    active={currentView === 'memberships'}
+                    onClick={() => handleNavigate('memberships')}
+                  />
+                  <SidebarIcon 
+                    icon={<User className="w-5 h-5" />} 
+                    label="Üye Bilgisi Güncelle" 
+                    isSidebarExpanded={isSidebarExpanded}
+                    active={currentView === 'memberships_update'}
+                    onClick={() => handleNavigate('memberships_update')}
+                  />
+                  <SidebarIcon 
+                    icon={<CreditCard className="w-5 h-5" />} 
+                    label="Borçlu Üye Tahsilatı" 
+                    isSidebarExpanded={isSidebarExpanded}
+                    active={currentView === 'memberships_debt'}
+                    onClick={() => handleNavigate('memberships_debt')}
+                  />
+                </>
+              ) : currentView.startsWith('campaigns') ? (
+                <>
+                  <SidebarIcon 
+                    icon={<Percent className="w-5 h-5" />} 
+                    label="Ek İndirim Tanımlamaları" 
+                    isSidebarExpanded={isSidebarExpanded}
+                    active={currentView === 'campaigns_discount'}
+                    onClick={() => handleNavigate('campaigns_discount')}
+                  />
+                  <SidebarIcon 
+                    icon={<Ticket className="w-5 h-5" />} 
+                    label="Promosyon Kodu Oluşturma" 
+                    isSidebarExpanded={isSidebarExpanded}
+                    active={currentView === 'campaigns_promo_create'}
+                    onClick={() => handleNavigate('campaigns_promo_create')}
+                  />
+                  <SidebarIcon 
+                    icon={<List className="w-5 h-5" />} 
+                    label="Promosyon Kodu Listeleme" 
+                    isSidebarExpanded={isSidebarExpanded}
+                    active={currentView === 'campaigns_promo_list'}
+                    onClick={() => handleNavigate('campaigns_promo_list')}
+                  />
+                  <SidebarIcon 
+                    icon={<Landmark className="w-5 h-5" />} 
+                    label="Yeni Banka İndirimi Ekleme" 
+                    isSidebarExpanded={isSidebarExpanded}
+                    active={currentView === 'campaigns_bank'}
+                    onClick={() => handleNavigate('campaigns_bank')}
+                  />
+                  <SidebarIcon 
+                    icon={<UserPlus className="w-5 h-5" />} 
+                    label="Referans Kampanyası" 
+                    isSidebarExpanded={isSidebarExpanded}
+                    active={currentView === 'campaigns_referral'}
+                    onClick={() => handleNavigate('campaigns_referral')}
+                  />
+                  <SidebarIcon 
+                    icon={<Snowflake className="w-5 h-5" />} 
+                    label="Dondurma Kampanyası" 
+                    isSidebarExpanded={isSidebarExpanded}
+                    active={currentView === 'campaigns_freeze'}
+                    onClick={() => handleNavigate('campaigns_freeze')}
+                  />
+                </>
+              ) : (
+                <>
+                  <SidebarIcon 
+                    icon={<BarChart2 className="w-5 h-5" />} 
+                    label="İstatistikler" 
+                    isSidebarExpanded={isSidebarExpanded} 
+                  />
+                  {currentView !== 'campaigns' && (
+                    <SidebarIcon 
+                      icon={<Users className="w-5 h-5" />} 
+                      label="Aday Üye"
+                      active={currentView === 'contacts'} 
+                      isSidebarExpanded={isSidebarExpanded}
+                      onClick={() => handleNavigate('contacts')}
+                      menu={{
+                        title: "ADAY ÜYE",
+                        items: ["Aday Üye Listesi", "Takvim", "QR Kodları", "Farklı Kulübe Gidenler"]
+                      }}
+                    />
+                  )}
+                  <SidebarIcon 
+                    icon={<Calendar className="w-5 h-5" />} 
+                    label="Takvim" 
+                    isSidebarExpanded={isSidebarExpanded} 
+                  />
+                </>
               )}
-              <SidebarIcon 
-                icon={<Calendar className="w-5 h-5" />} 
-                label="Takvim" 
-                isSidebarExpanded={isSidebarExpanded} 
-              />
             </div>
 
             {/* Fixed Expand Toggle Button at the Bottom */}
@@ -197,26 +309,28 @@ export default function App() {
           ) : (
             <>
               {/* Operation Dashboard */}
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex items-center justify-between flex-shrink-0">
-                <div className="flex items-center gap-5">
-                  <div className="w-14 h-14 bg-[#171a1d] rounded-xl flex items-center justify-center shadow-sm">
-                    <Phone className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="flex flex-col">
-                    <h2 className="text-lg font-bold text-slate-900">Operasyon Zamanı!</h2>
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">
-                      <span className="text-xs text-slate-600">🎯 Bugün Gelen: <span className="font-bold text-slate-900">124</span></span>
-                      <span className="text-xs text-slate-600">🔥 Hot Lead: <span className="font-bold text-red-600">37</span></span>
-                      <span className="text-xs text-slate-600">📞 Bekleyen: <span className="font-bold text-blue-600">52</span></span>
-                      <span className="text-xs text-slate-600">💰 Satış: <span className="font-bold text-emerald-600">9</span></span>
+              {currentView === 'contacts' && (
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex items-center justify-between flex-shrink-0">
+                  <div className="flex items-center gap-5">
+                    <div className="w-14 h-14 bg-[#171a1d] rounded-xl flex items-center justify-center shadow-sm">
+                      <Phone className="w-6 h-6 text-white" />
                     </div>
-                    <p className="text-[10px] text-slate-400 mt-1 italic">Not: Aranmayan lead'ler performans skorunu düşürür.</p>
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-bold text-slate-900">Operasyon Zamanı!</h2>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">
+                        <span className="text-xs text-slate-600">🎯 Bugün Gelen: <span className="font-bold text-slate-900">124</span></span>
+                        <span className="text-xs text-slate-600">🔥 Hot Lead: <span className="font-bold text-red-600">37</span></span>
+                        <span className="text-xs text-slate-600">📞 Bekleyen: <span className="font-bold text-blue-600">52</span></span>
+                        <span className="text-xs text-slate-600">💰 Satış: <span className="font-bold text-emerald-600">9</span></span>
+                      </div>
+                      <p className="text-[10px] text-slate-400 mt-1 italic">Not: Aranmayan lead'ler performans skorunu düşürür.</p>
+                    </div>
                   </div>
+                  <button className="bg-[#171a1d] text-white px-5 py-2.5 rounded-lg font-bold text-sm flex items-center gap-2 hover:bg-slate-800 transition-all">
+                    🔥 Şimdi Aramaya Başla <ChevronRight className="w-4 h-4" />
+                  </button>
                 </div>
-                <button className="bg-[#171a1d] text-white px-5 py-2.5 rounded-lg font-bold text-sm flex items-center gap-2 hover:bg-slate-800 transition-all">
-                  🔥 Şimdi Aramaya Başla <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
+              )}
 
               {/* Main Workspace Area (Toolbar + Table + Sidebar) */}
               <div className="flex-1 flex gap-3 min-h-0">
@@ -492,10 +606,55 @@ export default function App() {
                           <Bookmark className="w-16 h-16 opacity-20" />
                           <p className="text-lg font-medium">Üyelik İşlemleri Modülü</p>
                         </>
-                      ) : (
+                      ) : currentView === 'memberships_update' ? (
+                        <>
+                          <User className="w-16 h-16 opacity-20" />
+                          <p className="text-lg font-medium">Üye Bilgisi Güncelleme</p>
+                        </>
+                      ) : currentView === 'memberships_debt' ? (
+                        <>
+                          <CreditCard className="w-16 h-16 opacity-20" />
+                          <p className="text-lg font-medium">Borçlu Üye Tahsilatı</p>
+                        </>
+                      ) : currentView === 'campaigns' ? (
                         <>
                           <Sparkles className="w-16 h-16 opacity-20" />
                           <p className="text-lg font-medium">Kampanya İşlemleri Modülü</p>
+                        </>
+                      ) : currentView === 'campaigns_discount' ? (
+                        <>
+                          <Percent className="w-16 h-16 opacity-20" />
+                          <p className="text-lg font-medium">Ek İndirim Tanımlamaları</p>
+                        </>
+                      ) : currentView === 'campaigns_promo_create' ? (
+                        <>
+                          <Ticket className="w-16 h-16 opacity-20" />
+                          <p className="text-lg font-medium">Promosyon Kodu Oluşturma</p>
+                        </>
+                      ) : currentView === 'campaigns_promo_list' ? (
+                        <>
+                          <List className="w-16 h-16 opacity-20" />
+                          <p className="text-lg font-medium">Promosyon Kodu Listeleme - Sorgulama</p>
+                        </>
+                      ) : currentView === 'campaigns_bank' ? (
+                        <>
+                          <Landmark className="w-16 h-16 opacity-20" />
+                          <p className="text-lg font-medium">Yeni Banka İndirimi Ekleme</p>
+                        </>
+                      ) : currentView === 'campaigns_referral' ? (
+                        <>
+                          <UserPlus className="w-16 h-16 opacity-20" />
+                          <p className="text-lg font-medium">Referans Kampanyası</p>
+                        </>
+                      ) : currentView === 'campaigns_freeze' ? (
+                        <>
+                          <Snowflake className="w-16 h-16 opacity-20" />
+                          <p className="text-lg font-medium">Dondurma Kampanyası</p>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-16 h-16 opacity-20" />
+                          <p className="text-lg font-medium">Modül Sayfası</p>
                         </>
                       )}
                       <p className="text-sm">Bu modül için içerik yakında eklenecektir.</p>
